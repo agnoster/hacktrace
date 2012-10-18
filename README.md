@@ -12,7 +12,7 @@ hacktrace = require('hacktrace')
 
 try {
   hacktrace({ file: 'foo.js', line: 8, column: 4, label: 'barf' }, function() {
-    hacktrace({ line_relative: 5 }, function() {
+    hacktrace({ line_offset: 5 }, function() {
       throw new Error("ONOZ")
     })
   })

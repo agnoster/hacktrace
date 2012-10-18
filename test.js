@@ -51,19 +51,28 @@ describe('hacktrace', function() {
 
   it('lets us write new lines into the hacktrace', function(){
     var e = fake_stack(
-      [ "hello (bar.js:5:2)"
+      [ "hello (bar.js:18:2)"
       , "foo (bar.js:13)"
       ], "barf")
 
-    expect(e.hacktrace).to.equal("Error: barf\n    hello (bar.js:5:2)\n    foo (bar.js:13)")
+    expect(e.hacktrace()).to.equal("Error: barf\n    hello (bar.js:18:2)\n    foo (bar.js:13)")
   })
 
   it('lets us format lines as objects', function(){
     var e = fake_stack(
-      [ { label: "hello", file: "bar.js", line: 5, column: 2 }
+      [ { label: "hello", file: "bar.js", line: 18, column: 2 }
       , { label: "foo", file: "bar.js", line: 13 }
       ], "barf")
 
-    expect(e.hacktrace).to.equal("Error: barf\n    hello (bar.js:5:2)\n    foo (bar.js:13)")
+    expect(e.hacktrace()).to.equal("Error: barf\n    hello (bar.js:18:2)\n    foo (bar.js:13)")
+  })
+
+  it('understands line_offset', function(){
+    var e = fake_stack(
+      [ { label: "hello", line_offset: 5, column: 2 }
+      , { label: "foo", file: "bar.js", line: 13 }
+      ], "barf")
+
+    expect(e.hacktrace()).to.equal("Error: barf\n    hello (bar.js:18:2)\n    foo (bar.js:13)")
   })
 })

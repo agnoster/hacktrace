@@ -1,41 +1,49 @@
-function hacktrace(line, fn) {
+function hacktrace(frame, fn) {
   try {
     return fn()
   } catch(e) {
-    add_line(e, line)
-    e.__defineGetter__('hacktrace', format_hacktrace)
+    add_frame(e, frame)
+    e.hacktrace = format_hacktrace
     throw e
   }
 }
 
-function add_line(e, line) {
-  e._hacktrace = e._hacktrace || [ e.name + ': ' + e.message ]
-  e._hacktrace.push(line)
+function add_frame(e, frame) {
+  e._hacktrace = e._hacktrace || []
+  e._hacktrace.unshift(frame)
 }
 
-function format_line(e, line) {
-  if ('string' === typeof line) return line
+function format_frame(e, frame, prev) {
+  if ('string' === typeof frame) return frame
 
   var str = '', location
-  location = line.file || line.filename || ''
-  if (line.line) location += ':' + line.line
-  if (line.column) location += ':' + line.column
-  if (line.label) {
-    if (location.length > 0) return line.label + ' (' + location + ')'
-    else return line.label
+  if (frame.line_offset) {
+    if (!prev) prev = { line: 0 }
+
+    frame.line = prev.line + frame.line_offset
+    frame.file = frame.file || prev.file || prev.filename
+  }
+
+  location = frame.file || frame.filename || ''
+  if (frame.line) {
+    location += ':' + frame.line
+    if (frame.column) location += ':' + frame.column
+  }
+  if (frame.label) {
+    if (location.length > 0) return frame.label + ' (' + location + ')'
+    else return frame.label
   }
   return location
 }
 
 function format_hacktrace() {
-  var string = ''
-    , i
+  var heading = this.name + ': ' + this.message
+    , frames = [], i, prev
 
   for (i = 0; i < this._hacktrace.length; i++) {
-    if (string.length > 0) string += '\n    '
-    string += format_line(this, this._hacktrace[i])
+    frames.unshift('\n    ' + format_frame(this, this._hacktrace[i], this._hacktrace[i - 1]))
   }
-  return string
+  return heading + frames.join('')
 }
 
 module.exports = hacktrace
